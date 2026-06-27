@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Network Topology Discovery</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- vis.js (standalone build includes vis-data + vis-network) -->
+    <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- App styles -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- =========================================================== -->
+    <!-- Progress bar (top)                                          -->
+    <!-- =========================================================== -->
+    <div id="progress-bar-container">
+        <div id="progress-bar-fill"></div>
+    </div>
+
+    <!-- =========================================================== -->
+    <!-- Top Navigation Bar                                          -->
+    <!-- =========================================================== -->
+    <header id="top-bar">
+        <div class="top-bar-left">
+            <span class="logo-icon">🔍</span>
+            <h1 class="app-title">Network Topology Discovery</h1>
+            <span id="connection-dot" class="connection-dot disconnected" title="WebSocket status"></span>
+            <span id="scan-badge" class="scan-badge idle">Idle</span>
+        </div>
+        <div class="top-bar-right">
+            <!-- Scan Depth Controls -->
+            <div class="scan-depth-controls">
+                <label class="depth-label" for="scanDepth">深度:</label>
+                <select id="scanDepth">
+                    <option value="1">仅本子网</option>
+                    <option value="2">手动指定</option>
+                    <option value="3">自动发现</option>
+                </select>
+                <div id="subnetInput" class="subnet-input-area" style="display:none;">
+                    <input type="text" id="subnetInputField" placeholder="10.11.99.0/24" />
+                    <button id="addSubnet">添加</button>
+                    <ul id="subnetList"></ul>
+                </div>
+            </div>
+            <button id="btn-export-png" class="btn btn-ghost" title="Export PNG Topology">
+                <span class="btn-icon">📸</span> PNG
+            </button>
+            <button id="btn-export-xlsx" class="btn btn-ghost" title="Export Excel Report">
+                <span class="btn-icon">📊</span> XLSX
+            </button>
+            <button id="btn-toggle-scan" class="btn btn-primary" title="Pause / Resume Scanning">
+                <span id="btn-scan-icon" class="btn-icon">⏸️</span>
+                <span id="btn-scan-label">Pause</span>
+            </button>
+            <button id="btn-refresh-now" class="btn btn-primary" title="立即触发一次扫描">
+                🔄 立即刷新
+            </button>
+            <button id="btn-toggle-theme" class="btn btn-ghost" title="Toggle Dark / Light Theme">
+                <span id="theme-icon" class="btn-icon">☀️</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- =========================================================== -->
+    <!-- Main Content Grid                                           -->
+    <!-- =========================================================== -->
+    <main id="main-grid">
+        <!-- ── LEFT: Stats Cards ─────────────────────────────────── -->
+        <aside id="stats-panel">
+            <div class="panel-header">📊 Dashboard</div>
+
+            <div class="stat-card stat-online">
+                <div class="stat-icon">🟢</div>
+                <div class="stat-value" id="stat-online">0</div>
+                <div class="stat-label">Online</div>
+            </div>
+
+            <div class="stat-card stat-offline">
+                <div class="stat-icon">🔴</div>
+                <div class="stat-value" id="stat-offline">0</div>
+                <div class="stat-label">Offline</div>
+            </div>
+
+            <div class="stat-card stat-router">
+                <div class="stat-icon">🔷</div>
+                <div class="stat-value" id="stat-routers">0</div>
+                <div class="stat-label">Routers</div>
+            </div>
+
+            <div class="stat-card stat-switch">
+                <div class="stat-icon">🔶</div>
+                <div class="stat-value" id="stat-switches">0</div>
+                <div class="stat-label">Switches</div>
+            </div>
+
+            <div class="stat-card stat-endpoint">
+                <div class="stat-icon">💻</div>
+                <div class="stat-value" id="stat-endpoints">0</div>
+                <div class="stat-label">Endpoints</div>
+            </div>
+
+            <!-- Donut chart -->
+            <div class="chart-container">
+                <canvas id="type-chart"></canvas>
+            </div>
+        </aside>
+
+        <!-- ── CENTER: Topology Graph ────────────────────────────── -->
+        <section id="graph-panel">
+            <div class="panel-header">
+                🌐 Topology Graph
+                <span class="graph-hint">Drag to pan · Scroll to zoom · Click node for details</span>
+            </div>
+            <div id="network-graph"></div>
+            <div id="graph-empty" class="graph-empty-state">
+                <div class="empty-icon">🔍</div>
+                <div class="empty-text">Waiting for scan data…</div>
+                <div class="empty-sub">The topology will appear here once the first scan completes.</div>
+            </div>
+        </section>
+
+        <!-- ── RIGHT: Device Info Panel ──────────────────────────── -->
+        <aside id="device-panel">
+            <div class="panel-header">📋 Device Details</div>
+            <div id="device-detail-empty" class="device-empty-state">
+                <div class="empty-icon-sm">👆</div>
+                <div class="empty-sub">Click a node in the topology graph to view device details.</div>
+            </div>
+            <div id="device-detail-content" class="device-detail-content" style="display:none;">
+                <div class="device-field">
+                    <span class="field-key">IP Address</span>
+                    <span class="field-value" id="det-ip">—</span>
+                </div>
+                <div class="device-field">
+                    <span class="field-key">MAC Address</span>
+                    <span class="field-value" id="det-mac">—</span>
+                </div>
+                <div class="device-field">
+                    <span class="field-key">Vendor</span>
+                    <span class="field-value" id="det-vendor">—</span>
+                </div>
+                <div class="device-field">
+                    <span class="field-key">Device Type</span>
+                    <span class="field-value" id="det-type">—</span>
+                </div>
+                <div class="device-field">
+                    <span class="field-key">Status</span>
+                    <span class="field-value" id="det-status">—</span>
+                </div>
+                <div class="device-field">
+                    <span class="field-key">Virtual</span>
+                    <span class="field-value" id="det-virtual">—</span>
+                </div>
+                <div class="device-field">
+                    <span class="field-key">Connected Links</span>
+                    <span class="field-value" id="det-links">—</span>
+                </div>
+                <div class="device-field">
+                    <span class="field-key">Last Seen</span>
+                    <span class="field-value" id="det-last-seen">—</span>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- =========================================================== -->
+    <!-- Bottom: Event Log Stream                                    -->
+    <!-- =========================================================== -->
+    <footer id="log-panel">
+        <div class="panel-header">
+            📜 Event Log
+            <button id="btn-clear-log" class="btn btn-ghost btn-xs" title="Clear log">Clear</button>
+        </div>
+        <div id="log-stream"></div>
+    </footer>
+
+    <!-- =========================================================== -->
+    <!-- Export iframe (hidden, for PNG download trigger)            -->
+    <!-- =========================================================== -->
+    <iframe id="download-frame" style="display:none;" title="Download"></iframe>
+
+    <!-- App script -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

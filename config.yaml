@@ -1,0 +1,63 @@
+# Network Topology Discovery — Configuration
+# ==========================================
+
+network:
+  # 网卡：auto 自动检测活跃网卡，或指定 eno2
+  interface: auto
+  # Ping 超时（秒）
+  ping_timeout: 1.0
+  # Ping 并发数（同时进行的 ping 进程数）
+  ping_concurrency: 200
+  # 大子网分块阈值：超过此主机数的子网自动拆分为 /24 块扫描
+  large_subnet_chunk_size: 256
+  # 扫描深度: 1=仅本子网  2=含指定子网  3=自动发现所有路由子网
+  scan_depth: 1
+  # depth≥2 时手动指定的额外子网
+  additional_subnets: []
+  # depth=3 时最多自动发现的子网数
+  max_subnet_count: 5
+
+traceroute:
+  # 最大跳数
+  max_hops: 30
+  # 单跳超时（秒）
+  timeout: 3.0
+  # 外网探测目标
+  targets:
+    - 8.8.8.8
+    - 114.114.114.114
+    - 1.1.1.1
+
+scheduler:
+  # 扫描间隔（秒）
+  interval: 60
+  # 离线判定：连续不可达次数阈值
+  offline_threshold: 5
+
+server:
+  # 监听地址
+  host: "0.0.0.0"
+  # 监听端口
+  port: 8080
+
+theme:
+  # 默认主题：dark / light
+  default: dark
+
+export:
+  # PNG 分辨率
+  png_dpi: 150
+  png_width: 1920
+  png_height: 1080
+  # Excel 文件名
+  excel_filename: links.xlsx
+  # PNG 文件名
+  png_filename: topology.png
+
+logging:
+  # 日志文件
+  file: logs/events.jsonl
+  # 控制台输出
+  console: true
+  # 日志级别：DEBUG / INFO / WARN / ERROR
+  level: INFO
