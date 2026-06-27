@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔍 Network Topology Discovery</title>
+    <title> Network Topology Discovery</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,7 +32,7 @@
     <!-- =========================================================== -->
     <header id="top-bar">
         <div class="top-bar-left">
-            <span class="logo-icon">🔍</span>
+            <span class="logo-icon"></span>
             <h1 class="app-title">Network Topology Discovery</h1>
             <span id="connection-dot" class="connection-dot disconnected" title="WebSocket status"></span>
             <span id="scan-badge" class="scan-badge idle">Idle</span>
@@ -53,10 +53,10 @@
                 </div>
             </div>
             <button id="btn-export-png" class="btn btn-ghost" title="Export PNG Topology">
-                <span class="btn-icon">📸</span> PNG
+                <span class="btn-icon"></span> Save as PNG
             </button>
             <button id="btn-export-xlsx" class="btn btn-ghost" title="Export Excel Report">
-                <span class="btn-icon">📊</span> XLSX
+                <span class="btn-icon"></span> Save as XLSX
             </button>
             <button id="btn-toggle-scan" class="btn btn-primary" title="Pause / Resume Scanning">
                 <span id="btn-scan-icon" class="btn-icon">⏸️</span>
@@ -77,7 +77,7 @@
     <main id="main-grid">
         <!-- ── LEFT: Stats Cards ─────────────────────────────────── -->
         <aside id="stats-panel">
-            <div class="panel-header">📊 Dashboard</div>
+            <div class="panel-header">Dashboard</div>
 
             <div class="stat-card stat-online">
                 <div class="stat-icon">🟢</div>
@@ -118,7 +118,7 @@
         <!-- ── CENTER: Topology Graph ────────────────────────────── -->
         <section id="graph-panel">
             <div class="panel-header">
-                🌐 Topology Graph
+                Topology Graph
                 <span class="graph-hint">Drag to pan · Scroll to zoom · Click node for details</span>
             </div>
             <div id="network-graph"></div>
@@ -131,7 +131,7 @@
 
         <!-- ── RIGHT: Device Info Panel ──────────────────────────── -->
         <aside id="device-panel">
-            <div class="panel-header">📋 Device Details</div>
+            <div class="panel-header"> Device Details</div>
             <div id="device-detail-empty" class="device-empty-state">
                 <div class="empty-icon-sm">👆</div>
                 <div class="empty-sub">Click a node in the topology graph to view device details.</div>
@@ -178,7 +178,7 @@
     <!-- =========================================================== -->
     <footer id="log-panel">
         <div class="panel-header">
-            📜 Event Log
+             Event Log
             <button id="btn-clear-log" class="btn btn-ghost btn-xs" title="Clear log">Clear</button>
         </div>
         <div id="log-stream"></div>
